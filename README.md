@@ -21,7 +21,7 @@ python testAll.py --data-dir ./1800x3600 --count 77 --iterations 3 --error 1e-4 
 - 38 Core Xeon Platinum 8368Q 2.6 GHz Base, 3.7 GHz boost
 - 1.25 MB L2 per core
 - 57 MB L3
-- 256 GB of DDR4 3200MHz DDR4 on 8 channels
+- 256 GB of 3200MHz DDR4 on 8 channels
 
 # Summary of Code Iterations
 0. code we received at the start of the project
