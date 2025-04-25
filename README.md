@@ -13,6 +13,13 @@ python testAll.py --data-dir ./1800x3600 --count 77 --iterations 3 --error 1e-4 
 ```
 ![The output of a recent multi version test](./screenshots/test1.png)
 
+# teste on this machine:
+![test machine specs](image.png)
+- 38 Core Xeon Platinum 8368Q 2.6 GHz Base, 3.7 GHz boost
+- 1.25 MB L2 per core
+- 57 MB L3
+- 256 GB of DDR4 3200MHz DDR4 on 8 channels
+
 # Summary or iterations
 - 0. code we received at the start of the project
 - 1. code with added comments to get a better understanding of how it works, along with the change to 16 threads for NUM_THREADS;
