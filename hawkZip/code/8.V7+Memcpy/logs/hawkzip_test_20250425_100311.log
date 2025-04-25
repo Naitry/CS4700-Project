@@ -1,0 +1,10 @@
+HawkZip Test Results - 2025-04-25 10:03:11
+Code directory: /home/naitry/Dev/HPPC/hawkZip/code/8.V7+Memcpy
+Data directory: /home/naitry/Dev/HPPC/hawkZip/1800x3600
+Error bound: 0.001
+Iterations per file: 5
+
+File,Compression Ratio,Compression Throughput (GB/s),Decompression Throughput (GB/s),Success Rate
+TSMN_1_1800_3600.f32,2.611884,2.896272,4.095541,1.00
+PRECSL_1_1800_3600.f32,9.472826,3.495019,4.898996,1.00
+FLNTC_1_1800_3600.f32,2.875813,3.394058,3.881990,1.00

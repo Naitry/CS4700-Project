@@ -13,7 +13,7 @@
 #include <emmintrin.h>  // For SSE2 intrinsics - though not currently used in the code
 #include <omp.h>        // For OpenMP parallel processing
 
-#define NUM_THREADS 18   // Number of threads to use for parallel processing
+#define NUM_THREADS 16   // Number of threads to use for parallel processing
 
 /**
 * @brief Core compression kernel function for hawkZip

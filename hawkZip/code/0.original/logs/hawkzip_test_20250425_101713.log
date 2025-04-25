@@ -1,0 +1,7 @@
+HawkZip Test Results - 2025-04-25 10:17:13
+Code directory: /home/naitry/Dev/HPPC/hawkZip/code/0.original
+Data directory: /home/naitry/Dev/HPPC/hawkZip/1800x3600
+Error bound: 0.001
+Iterations per file: 77
+
+File,Compression Ratio,Compression Throughput (GB/s),Decompression Throughput (GB/s),Success Rate

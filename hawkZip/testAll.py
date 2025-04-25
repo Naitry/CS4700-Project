@@ -98,6 +98,8 @@ def main():
     # Find all code directories
     code_dirs = [d for d in glob.glob(os.path.join(args.code_base_dir, "*")) if os.path.isdir(d)]
     
+    iterations=args.iterations
+
     if not code_dirs:
         print(f"No code directories found in {args.code_base_dir}")
         return
@@ -119,7 +121,7 @@ def main():
             code_dir=code_dir,
             data_dir=args.data_dir,
             count=args.count,
-            iterations=args.iterations,
+            iterations=iterations,
             error_bound=args.error
         )
         
@@ -167,13 +169,27 @@ def main():
     
     # Print summary table
     if all_results:
+        print(f"TEST COMPLETE: {iterations} iterations")
         print("\nSummary of all configurations:")
-        print(f"{'Configuration':<60} {'Comp Ratio':<12} {'Comp GB/s':<12} {'Decomp GB/s':<12} {'Success %':<10}")
-        print("-" * 70)
+        print(f"{'Configuration':<60} {'Comp Ratio':<12} {'Comp GB/s':<12} {'Decomp GB/s':<12} {'Success %':<10} {'Compression Uplift %':<25} {'Decompression Uplift %':<25} {'Aggregate Uplift %':<25}")
+        print("-" * 175)  # Adjusted to match total width
         
-        # Sort by compression throughput (highest first)
-        for result in sorted(all_results, key=lambda x: x['avg_compression_throughput'], reverse=True):
-            print(f"{result['configuration']:<60} {result['avg_compression_ratio']:<12.4f} {result['avg_compression_throughput']:<12.4f} {result['avg_decompression_throughput']:<12.4f} {result['success_rate']:<10.1f}")
+        original_compression = all_results[0]['avg_compression_throughput']
+        original_decompression = all_results[0]['avg_decompression_throughput']
+        
+        # Calculate aggregate uplift for each result
+        for result in all_results:
+            comp_uplift = 100 * (result['avg_compression_throughput'] / original_compression - 1)
+            decomp_uplift = 100 * (result['avg_decompression_throughput'] / original_decompression - 1)
+            result['aggregate_uplift'] = (comp_uplift + decomp_uplift) / 2
+        
+        # Sort by aggregate uplift (highest first)
+        for result in sorted(all_results, key=lambda x: x['aggregate_uplift'], reverse=True):
+            comp_uplift = 100 * (result['avg_compression_throughput'] / original_compression - 1)
+            decomp_uplift = 100 * (result['avg_decompression_throughput'] / original_decompression - 1)
+            aggregate_uplift = (comp_uplift + decomp_uplift) / 2
+            
+            print(f"{result['configuration']:<60} {result['avg_compression_ratio']:<12.4f} {result['avg_compression_throughput']:<12.4f} {result['avg_decompression_throughput']:<12.4f} {result['success_rate']:<10.1f} {comp_uplift:<25.4f} {decomp_uplift:<25.4f} {aggregate_uplift:<25.4f}")
 
 if __name__ == "__main__":
     main()

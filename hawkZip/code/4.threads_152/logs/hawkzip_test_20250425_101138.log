@@ -1,0 +1,18 @@
+HawkZip Test Results - 2025-04-25 10:11:38
+Code directory: /home/naitry/Dev/HPPC/hawkZip/code/4.threads_152
+Data directory: /home/naitry/Dev/HPPC/hawkZip/1800x3600
+Error bound: 0.001
+Iterations per file: 5
+
+File,Compression Ratio,Compression Throughput (GB/s),Decompression Throughput (GB/s),Success Rate
+FSNTC_1_1800_3600.f32,3.813799,2.228507,3.893858,0.80
+FLUTC_1_1800_3600.f32,2.874366,1.750898,2.758460,1.00
+FSNTOA_1_1800_3600.f32,3.848436,2.387594,3.657164,1.00
+FSUTOA_1_1800_3600.f32,4.065451,2.318957,3.858140,1.00
+PRECT_1_1800_3600.f32,5.365882,2.911221,4.947977,1.00
+
+Summary Statistics
+Average compression ratio: 3.993587
+Average compression throughput: 2.319435 GB/s
+Average decompression throughput: 3.823120 GB/s
+Overall success rate: 80.0%

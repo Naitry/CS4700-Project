@@ -1,0 +1,8 @@
+HawkZip Test Results - 2025-04-25 10:23:24
+Code directory: /home/naitry/Dev/HPPC/hawkZip/code/0.original
+Data directory: /home/naitry/Dev/HPPC/hawkZip/1800x3600
+Error bound: 0.001
+Iterations per file: 77
+
+File,Compression Ratio,Compression Throughput (GB/s),Decompression Throughput (GB/s),Success Rate
+TAUX_1_1800_3600.f32,5.739684,0.724062,0.835715,1.00

@@ -131,36 +131,58 @@ void hawkZip_compress_kernel(float* oriData, unsigned char* cmpData, int* absQua
                // Process each bit position (fixed-rate encoding)
                for(int j=0; j<temp_fixed_rate; j++)
                {
-                   // Clear temporary byte buffers
-                   tmp_char0 = 0;
-                   tmp_char1 = 0;
-                   tmp_char2 = 0;
-                   tmp_char3 = 0;
+                    // Clear temporary byte buffers
+                    tmp_char0 = 0;
+                    tmp_char1 = 0;
+                    tmp_char2 = 0;
+                    tmp_char3 = 0;
 
-                   // Pack bits from elements 0-7 into first byte
-                   for(int k=block_start; k<block_start+8; k++)
-                       tmp_char0 |= (((absQuant[k] & mask) >> j) << (7+block_start-k));
-                   
-                   // Pack bits from elements 8-15 into second byte
-                   for(int k=block_start+8; k<block_start+16; k++)
-                       tmp_char1 |= (((absQuant[k] & mask) >> j) << (15+block_start-k));
-                   
-                   // Pack bits from elements 16-23 into third byte
-                   for(int k=block_start+16; k<block_start+24; k++)
-                       tmp_char2 |= (((absQuant[k] & mask) >> j) << (23+block_start-k));
-                   
-                   // Pack bits from elements 24-31 into fourth byte
-                   for(int k=block_start+24; k<block_end; k++)
-                       tmp_char3 |= (((absQuant[k] & mask) >> j) << (31+block_start-k));
+                // Single statement for each byte
+                tmp_char0 = ((absQuant[block_start]   & mask) ? 0x80 : 0) |
+                            ((absQuant[block_start+1] & mask) ? 0x40 : 0) |
+                            ((absQuant[block_start+2] & mask) ? 0x20 : 0) |
+                            ((absQuant[block_start+3] & mask) ? 0x10 : 0) |
+                            ((absQuant[block_start+4] & mask) ? 0x08 : 0) |
+                            ((absQuant[block_start+5] & mask) ? 0x04 : 0) |
+                            ((absQuant[block_start+6] & mask) ? 0x02 : 0) |
+                            ((absQuant[block_start+7] & mask) ? 0x01 : 0);
 
-                   // Write the packed bytes to output buffer
-                   cmpData[cmp_byte_ofs++] = tmp_char0;
-                   cmpData[cmp_byte_ofs++] = tmp_char1;
-                   cmpData[cmp_byte_ofs++] = tmp_char2;
-                   cmpData[cmp_byte_ofs++] = tmp_char3;
-                   
-                   // Shift mask to next bit position
-                   mask <<= 1;
+                tmp_char1 = ((absQuant[block_start+8]  & mask) ? 0x80 : 0) |
+                            ((absQuant[block_start+9]  & mask) ? 0x40 : 0) |
+                            ((absQuant[block_start+10] & mask) ? 0x20 : 0) |
+                            ((absQuant[block_start+11] & mask) ? 0x10 : 0) |
+                            ((absQuant[block_start+12] & mask) ? 0x08 : 0) |
+                            ((absQuant[block_start+13] & mask) ? 0x04 : 0) |
+                            ((absQuant[block_start+14] & mask) ? 0x02 : 0) |
+                            ((absQuant[block_start+15] & mask) ? 0x01 : 0);
+
+                tmp_char2 = ((absQuant[block_start+16] & mask) ? 0x80 : 0) |
+                            ((absQuant[block_start+17] & mask) ? 0x40 : 0) |
+                            ((absQuant[block_start+18] & mask) ? 0x20 : 0) |
+                            ((absQuant[block_start+19] & mask) ? 0x10 : 0) |
+                            ((absQuant[block_start+20] & mask) ? 0x08 : 0) |
+                            ((absQuant[block_start+21] & mask) ? 0x04 : 0) |
+                            ((absQuant[block_start+22] & mask) ? 0x02 : 0) |
+                            ((absQuant[block_start+23] & mask) ? 0x01 : 0);
+
+                // For the last byte, use conditional expressions for boundary checking
+                tmp_char3 = ((block_start+24 < block_end && (absQuant[block_start+24] & mask)) ? 0x80 : 0) |
+                            ((block_start+25 < block_end && (absQuant[block_start+25] & mask)) ? 0x40 : 0) |
+                            ((block_start+26 < block_end && (absQuant[block_start+26] & mask)) ? 0x20 : 0) |
+                            ((block_start+27 < block_end && (absQuant[block_start+27] & mask)) ? 0x10 : 0) |
+                            ((block_start+28 < block_end && (absQuant[block_start+28] & mask)) ? 0x08 : 0) |
+                            ((block_start+29 < block_end && (absQuant[block_start+29] & mask)) ? 0x04 : 0) |
+                            ((block_start+30 < block_end && (absQuant[block_start+30] & mask)) ? 0x02 : 0) |
+                            ((block_start+31 < block_end && (absQuant[block_start+31] & mask)) ? 0x01 : 0);
+
+                    // Write the packed bytes to output buffer
+                    cmpData[cmp_byte_ofs++] = tmp_char0;
+                    cmpData[cmp_byte_ofs++] = tmp_char1;
+                    cmpData[cmp_byte_ofs++] = tmp_char2;
+                    cmpData[cmp_byte_ofs++] = tmp_char3;
+
+                    // Shift mask to next bit position
+                    mask <<= 1;
                }
            }
        }
@@ -261,21 +283,45 @@ void hawkZip_decompress_kernel(float* decData, unsigned char* cmpData, int* absQ
                    tmp_char2 = cmpData[cmp_byte_ofs++];
                    tmp_char3 = cmpData[cmp_byte_ofs++];
 
-                   // Unpack bits for elements 0-7 from first byte
-                   for(int k=block_start; k<block_start+8; k++)
-                       absQuant[k] |= ((tmp_char0 >> (7+block_start-k)) & 0x00000001) << j;
+                    // Unpack bits for elements 0-7 from first byte
+                    absQuant[block_start]   |= ((tmp_char0 >> 7) & 0x00000001) << j;
+                    absQuant[block_start+1] |= ((tmp_char0 >> 6) & 0x00000001) << j;
+                    absQuant[block_start+2] |= ((tmp_char0 >> 5) & 0x00000001) << j;
+                    absQuant[block_start+3] |= ((tmp_char0 >> 4) & 0x00000001) << j;
+                    absQuant[block_start+4] |= ((tmp_char0 >> 3) & 0x00000001) << j;
+                    absQuant[block_start+5] |= ((tmp_char0 >> 2) & 0x00000001) << j;
+                    absQuant[block_start+6] |= ((tmp_char0 >> 1) & 0x00000001) << j;
+                    absQuant[block_start+7] |= ((tmp_char0 >> 0) & 0x00000001) << j;
 
-                   // Unpack bits for elements 8-15 from second byte
-                   for(int k=block_start+8; k<block_start+16; k++)
-                       absQuant[k] |= ((tmp_char1 >> (15+block_start-k)) & 0x00000001) << j;
+                    // Unpack bits for elements 8-15 from second byte
+                    absQuant[block_start+8]  |= ((tmp_char1 >> 7) & 0x00000001) << j;
+                    absQuant[block_start+9]  |= ((tmp_char1 >> 6) & 0x00000001) << j;
+                    absQuant[block_start+10] |= ((tmp_char1 >> 5) & 0x00000001) << j;
+                    absQuant[block_start+11] |= ((tmp_char1 >> 4) & 0x00000001) << j;
+                    absQuant[block_start+12] |= ((tmp_char1 >> 3) & 0x00000001) << j;
+                    absQuant[block_start+13] |= ((tmp_char1 >> 2) & 0x00000001) << j;
+                    absQuant[block_start+14] |= ((tmp_char1 >> 1) & 0x00000001) << j;
+                    absQuant[block_start+15] |= ((tmp_char1 >> 0) & 0x00000001) << j;
 
-                   // Unpack bits for elements 16-23 from third byte
-                   for(int k=block_start+16; k<block_start+24; k++)
-                       absQuant[k] |= ((tmp_char2 >> (23+block_start-k)) & 0x00000001) << j;
+                    // Unpack bits for elements 16-23 from third byte
+                    absQuant[block_start+16] |= ((tmp_char2 >> 7) & 0x00000001) << j;
+                    absQuant[block_start+17] |= ((tmp_char2 >> 6) & 0x00000001) << j;
+                    absQuant[block_start+18] |= ((tmp_char2 >> 5) & 0x00000001) << j;
+                    absQuant[block_start+19] |= ((tmp_char2 >> 4) & 0x00000001) << j;
+                    absQuant[block_start+20] |= ((tmp_char2 >> 3) & 0x00000001) << j;
+                    absQuant[block_start+21] |= ((tmp_char2 >> 2) & 0x00000001) << j;
+                    absQuant[block_start+22] |= ((tmp_char2 >> 1) & 0x00000001) << j;
+                    absQuant[block_start+23] |= ((tmp_char2 >> 0) & 0x00000001) << j;
 
-                   // Unpack bits for elements 24-31 from fourth byte
-                   for(int k=block_start+24; k<block_end; k++)
-                       absQuant[k] |= ((tmp_char3 >> (31+block_start-k)) & 0x00000001) << j;
+                    // Unpack bits for elements 24-31 from fourth byte
+                    if (block_start+24 < block_end) absQuant[block_start+24] |= ((tmp_char3 >> 7) & 0x00000001) << j;
+                    if (block_start+25 < block_end) absQuant[block_start+25] |= ((tmp_char3 >> 6) & 0x00000001) << j;
+                    if (block_start+26 < block_end) absQuant[block_start+26] |= ((tmp_char3 >> 5) & 0x00000001) << j;
+                    if (block_start+27 < block_end) absQuant[block_start+27] |= ((tmp_char3 >> 4) & 0x00000001) << j;
+                    if (block_start+28 < block_end) absQuant[block_start+28] |= ((tmp_char3 >> 3) & 0x00000001) << j;
+                    if (block_start+29 < block_end) absQuant[block_start+29] |= ((tmp_char3 >> 2) & 0x00000001) << j;
+                    if (block_start+30 < block_end) absQuant[block_start+30] |= ((tmp_char3 >> 1) & 0x00000001) << j;
+                    if (block_start+31 < block_end) absQuant[block_start+31] |= ((tmp_char3 >> 0) & 0x00000001) << j;
                }
 
                // Convert quantized values back to floating-point
