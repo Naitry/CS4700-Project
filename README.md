@@ -18,7 +18,7 @@ python testAll.py --data-dir ./1800x3600 --count 77 --iterations 3 --error 1e-4 
 
 # Tested on This Machine:
 ![test machine specs](./screenshots/machineInfo.png)
-- 38 Core Xeon Platinum 8368Q 2.6 GHz Base, 3.7 GHz boost
+- 38 Core Xeon Platinum 8368Q 2.6 GHz base clock, 3.7 GHz boost clock
 - 1.25 MB L2 per core
 - 57 MB L3
 - 256 GB of 3200MHz DDR4 on 8 channels
