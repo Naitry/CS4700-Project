@@ -1,3 +1,4 @@
+# HPPC HawkZip Compression Project
 Make sure you have downloaded the data set:
 ```
 wget https://g-8d6b0.fd635.8443.data.globus.org/ds131.2/Data-Reduction-Repo/raw-data/CESM-ATM/SDRBENCH-CESM-ATM-1800x3600.tar.gz
@@ -15,8 +16,8 @@ python testAll.py --data-dir ./1800x3600 --count 77 --iterations 3 --error 1e-4 
 ```
 ![The output of a recent multi version test](./screenshots/test1.png)
 
-# tested on this machine:
-![test machine specs](./screenshots/image.png)
+# Tested on This Machine:
+![test machine specs](./screenshots/machineInfo.png)
 - 38 Core Xeon Platinum 8368Q 2.6 GHz Base, 3.7 GHz boost
 - 1.25 MB L2 per core
 - 57 MB L3
