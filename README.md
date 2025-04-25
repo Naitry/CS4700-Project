@@ -1,7 +1,10 @@
 =
 Make sure you have downloaded the data set:
 ```
+wget https://g-8d6b0.fd635.8443.data.globus.org/ds131.2/Data-Reduction-Repo/raw-data/CESM-ATM/SDRBENCH-CESM-ATM-1800x3600.tar.gz
 
+# Extract all fields in this dataset (79 fields in total)
+tar -xvf SDRBENCH-CESM-ATM-1800x3600.tar.gz
 ```
 
 How to run a test of all versions:
@@ -13,7 +16,7 @@ python testAll.py --data-dir ./1800x3600 --count 77 --iterations 3 --error 1e-4 
 ```
 ![The output of a recent multi version test](./screenshots/test1.png)
 
-# teste on this machine:
+# tested on this machine:
 ![test machine specs](image.png)
 - 38 Core Xeon Platinum 8368Q 2.6 GHz Base, 3.7 GHz boost
 - 1.25 MB L2 per core
