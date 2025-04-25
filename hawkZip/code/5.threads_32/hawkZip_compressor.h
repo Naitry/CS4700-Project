@@ -63,7 +63,7 @@ void hawkZip_compress_kernel(float* oriData, unsigned char* cmpData, int* absQua
            int s;                                   // Sign indicator
            int curr_quant, max_quant=0;             // Current and maximum quantization values
            int curr_block = start_block + i;        // Current block index
-           unsigned int sign_flag = 0;              // Sign flag for current block
+           unsigned int sign_flag = 0;              // Sign flag for current blocks
            int temp_fixed_rate;                     // Bit length for fixed-rate encoding
            
            // Perform quantization on each element in the block
@@ -138,18 +138,22 @@ void hawkZip_compress_kernel(float* oriData, unsigned char* cmpData, int* absQua
                    tmp_char3 = 0;
 
                    // Pack bits from elements 0-7 into first byte
+                   #pragma GCC unroll 8
                    for(int k=block_start; k<block_start+8; k++)
                        tmp_char0 |= (((absQuant[k] & mask) >> j) << (7+block_start-k));
                    
                    // Pack bits from elements 8-15 into second byte
+                   #pragma GCC unroll 8
                    for(int k=block_start+8; k<block_start+16; k++)
                        tmp_char1 |= (((absQuant[k] & mask) >> j) << (15+block_start-k));
                    
                    // Pack bits from elements 16-23 into third byte
+                   #pragma GCC unroll 8
                    for(int k=block_start+16; k<block_start+24; k++)
                        tmp_char2 |= (((absQuant[k] & mask) >> j) << (23+block_start-k));
                    
                    // Pack bits from elements 24-31 into fourth byte
+                   #pragma GCC unroll 8
                    for(int k=block_start+24; k<block_end; k++)
                        tmp_char3 |= (((absQuant[k] & mask) >> j) << (31+block_start-k));
 

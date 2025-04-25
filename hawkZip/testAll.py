@@ -97,7 +97,8 @@ def main():
     
     # Find all code directories
     code_dirs = [d for d in glob.glob(os.path.join(args.code_base_dir, "*")) if os.path.isdir(d)]
-    
+
+    count = args.count
     iterations=args.iterations
 
     if not code_dirs:
@@ -120,7 +121,7 @@ def main():
         log_file = run_test(
             code_dir=code_dir,
             data_dir=args.data_dir,
-            count=args.count,
+            count=count,
             iterations=iterations,
             error_bound=args.error
         )
@@ -169,7 +170,7 @@ def main():
     
     # Print summary table
     if all_results:
-        print(f"TEST COMPLETE: {iterations} iterations")
+        print(f"TEST COMPLETE: {count} samples, {iterations} iterations each")
         print("\nSummary of all configurations:")
         print(f"{'Configuration':<60} {'Comp Ratio':<12} {'Comp GB/s':<12} {'Decomp GB/s':<12} {'Success %':<10} {'Compression Uplift %':<25} {'Decompression Uplift %':<25} {'Aggregate Uplift %':<25}")
         print("-" * 175)  # Adjusted to match total width
