@@ -1,0 +1,10 @@
+HawkZip Test Results - 2025-04-25 00:20:15
+Code directory: /home/naitry/Dev/HPPC/hawkZip/code/6.threads_152+UnrollingPacking
+Data directory: /home/naitry/Dev/HPPC/hawkZip/1800x3600
+Error bound: 0.0001
+Iterations per file: 5
+
+File,Compression Ratio,Compression Throughput (GB/s),Decompression Throughput (GB/s),Success Rate
+TMQ_1_1800_3600.f32,2.774243,1.773776,3.107170,1.00
+FLNS_1_1800_3600.f32,2.535976,1.481383,2.913747,1.00
+SNOWHLND_1_1800_3600.f32,9.369835,3.098621,8.050434,1.00

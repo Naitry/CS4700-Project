@@ -1,0 +1,9 @@
+HawkZip Test Results - 2025-04-25 02:05:58
+Code directory: /home/naitry/Dev/HPPC/hawkZip/code/7.V6+FunctionEncapsulation
+Data directory: /home/naitry/Dev/HPPC/hawkZip/1800x3600
+Error bound: 0.0001
+Iterations per file: 5
+
+File,Compression Ratio,Compression Throughput (GB/s),Decompression Throughput (GB/s),Success Rate
+TMQ_1_1800_3600.f32,2.775435,2.042457,0.657420,0.00
+FLNS_1_1800_3600.f32,2.537037,1.913312,0.688824,0.00

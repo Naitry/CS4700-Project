@@ -1,0 +1,9 @@
+HawkZip Test Results - 2025-04-25 01:34:23
+Code directory: /home/naitry/Dev/HPPC/hawkZip/code/0.original
+Data directory: /home/naitry/Dev/HPPC/hawkZip/1800x3600
+Error bound: 0.001
+Iterations per file: 5
+
+File,Compression Ratio,Compression Throughput (GB/s),Decompression Throughput (GB/s),Success Rate
+RHREFHT_1_1800_3600.f32,3.123108,0.452906,0.484735,1.00
+SRFRAD_1_1800_3600.f32,3.186030,0.431263,0.456795,1.00

@@ -13,7 +13,7 @@
 #include <emmintrin.h>  // For SSE2 intrinsics - though not currently used in the code
 #include <omp.h>        // For OpenMP parallel processing
 
-#define NUM_THREADS 18   // Number of threads to use for parallel processing
+#define NUM_THREADS 32   // Number of threads to use for parallel processing
 
 /**
 * @brief Core compression kernel function for hawkZip
@@ -53,7 +53,7 @@ void hawkZip_compress_kernel(float* oriData, unsigned char* cmpData, int* absQua
        int sign_ofs;                                // Offset for sign bit
        unsigned int thread_ofs = 0;                 // Byte offset for this thread's compressed data
 
-       // Process each block assigned to this thread
+       // Calculate output size of each block =======================================================
        for(int i=0; i<block_num; i++)
        {
            // Calculate the boundaries of the current block
@@ -67,7 +67,7 @@ void hawkZip_compress_kernel(float* oriData, unsigned char* cmpData, int* absQua
            int temp_fixed_rate;                     // Bit length for fixed-rate encoding
            
            // Perform quantization on each element in the block
-           for(int j=block_start; j<block_end; j++)
+            for(int j=block_start; j<block_end; j++)
            {
                // Step 1: Quantize the float value based on error bound
                data_recip = oriData[j] * recip_precision;
@@ -104,6 +104,7 @@ void hawkZip_compress_kernel(float* oriData, unsigned char* cmpData, int* absQua
        for(int i=0; i<thread_id; i++) global_ofs += threadOfs[i];
        unsigned int cmp_byte_ofs = global_ofs + block_num * NUM_THREADS;
 
+       // Encoding & Output ================================================================
        // Encode and write compressed data to output buffer
        for(int i=0; i<block_num; i++)
        {
@@ -124,42 +125,58 @@ void hawkZip_compress_kernel(float* oriData, unsigned char* cmpData, int* absQua
                cmpData[cmp_byte_ofs++] = 0xff & sign_flag;         // Least significant byte
 
                // Write quantized data bits
-               unsigned char tmp_char0, tmp_char1, tmp_char2, tmp_char3; // Temp storage for each byte
+               unsigned char tempChars[4]; // Temp storage for each byte
                int mask = 1;  // Bit mask for extracting bits
                
                // Process each bit position (fixed-rate encoding)
                for(int j=0; j<temp_fixed_rate; j++)
                {
-                   // Clear temporary byte buffers
-                   tmp_char0 = 0;
-                   tmp_char1 = 0;
-                   tmp_char2 = 0;
-                   tmp_char3 = 0;
+                memset(tempChars, 0, 4);
 
-                   // Pack bits from elements 0-7 into first byte
-                   for(int k=block_start; k<block_start+8; k++)
-                       tmp_char0 |= (((absQuant[k] & mask) >> j) << (7+block_start-k));
-                   
-                   // Pack bits from elements 8-15 into second byte
-                   for(int k=block_start+8; k<block_start+16; k++)
-                       tmp_char1 |= (((absQuant[k] & mask) >> j) << (15+block_start-k));
-                   
-                   // Pack bits from elements 16-23 into third byte
-                   for(int k=block_start+16; k<block_start+24; k++)
-                       tmp_char2 |= (((absQuant[k] & mask) >> j) << (23+block_start-k));
-                   
-                   // Pack bits from elements 24-31 into fourth byte
-                   for(int k=block_start+24; k<block_end; k++)
-                       tmp_char3 |= (((absQuant[k] & mask) >> j) << (31+block_start-k));
+                // Single statement for each byte
+                tempChars[0] = ((absQuant[block_start]   & mask) ? 0x80 : 0) |
+                            ((absQuant[block_start+1] & mask) ? 0x40 : 0) |
+                            ((absQuant[block_start+2] & mask) ? 0x20 : 0) |
+                            ((absQuant[block_start+3] & mask) ? 0x10 : 0) |
+                            ((absQuant[block_start+4] & mask) ? 0x08 : 0) |
+                            ((absQuant[block_start+5] & mask) ? 0x04 : 0) |
+                            ((absQuant[block_start+6] & mask) ? 0x02 : 0) |
+                            ((absQuant[block_start+7] & mask) ? 0x01 : 0);
 
-                   // Write the packed bytes to output buffer
-                   cmpData[cmp_byte_ofs++] = tmp_char0;
-                   cmpData[cmp_byte_ofs++] = tmp_char1;
-                   cmpData[cmp_byte_ofs++] = tmp_char2;
-                   cmpData[cmp_byte_ofs++] = tmp_char3;
-                   
-                   // Shift mask to next bit position
-                   mask <<= 1;
+                tempChars[1] = ((absQuant[block_start+8]  & mask) ? 0x80 : 0) |
+                            ((absQuant[block_start+9]  & mask) ? 0x40 : 0) |
+                            ((absQuant[block_start+10] & mask) ? 0x20 : 0) |
+                            ((absQuant[block_start+11] & mask) ? 0x10 : 0) |
+                            ((absQuant[block_start+12] & mask) ? 0x08 : 0) |
+                            ((absQuant[block_start+13] & mask) ? 0x04 : 0) |
+                            ((absQuant[block_start+14] & mask) ? 0x02 : 0) |
+                            ((absQuant[block_start+15] & mask) ? 0x01 : 0);
+
+                tempChars[2] = ((absQuant[block_start+16] & mask) ? 0x80 : 0) |
+                            ((absQuant[block_start+17] & mask) ? 0x40 : 0) |
+                            ((absQuant[block_start+18] & mask) ? 0x20 : 0) |
+                            ((absQuant[block_start+19] & mask) ? 0x10 : 0) |
+                            ((absQuant[block_start+20] & mask) ? 0x08 : 0) |
+                            ((absQuant[block_start+21] & mask) ? 0x04 : 0) |
+                            ((absQuant[block_start+22] & mask) ? 0x02 : 0) |
+                            ((absQuant[block_start+23] & mask) ? 0x01 : 0);
+
+                // For the last byte, use conditional expressions for boundary checking
+                tempChars[3] = ((block_start+24 < block_end && (absQuant[block_start+24] & mask)) ? 0x80 : 0) |
+                            ((block_start+25 < block_end && (absQuant[block_start+25] & mask)) ? 0x40 : 0) |
+                            ((block_start+26 < block_end && (absQuant[block_start+26] & mask)) ? 0x20 : 0) |
+                            ((block_start+27 < block_end && (absQuant[block_start+27] & mask)) ? 0x10 : 0) |
+                            ((block_start+28 < block_end && (absQuant[block_start+28] & mask)) ? 0x08 : 0) |
+                            ((block_start+29 < block_end && (absQuant[block_start+29] & mask)) ? 0x04 : 0) |
+                            ((block_start+30 < block_end && (absQuant[block_start+30] & mask)) ? 0x02 : 0) |
+                            ((block_start+31 < block_end && (absQuant[block_start+31] & mask)) ? 0x01 : 0);
+
+                    // Write the packed bytes to output buffer
+                    memcpy(&cmpData[cmp_byte_ofs], tempChars, 4);
+                    cmp_byte_ofs += 4;
+
+                    // Shift mask to next bit position
+                    mask <<= 1;
                }
            }
        }
@@ -173,6 +190,7 @@ void hawkZip_compress_kernel(float* oriData, unsigned char* cmpData, int* absQua
        }
    }
 }
+
 
 /**
 * @brief Core decompression kernel function for hawkZip
@@ -207,6 +225,10 @@ void hawkZip_decompress_kernel(float* decData, unsigned char* cmpData, int* absQ
        int start_block = thread_id * block_num;     // Starting block index
        unsigned int thread_ofs = 0;                 // Byte offset for this thread's compressed data
 
+       // Pre-allocated arrays for sign flags
+       unsigned int* sign_flags = (unsigned int*)malloc(block_num * sizeof(unsigned int));
+       unsigned int* byte_offsets = (unsigned int*)malloc(block_num * sizeof(unsigned int));
+
        // First pass: read block metadata and calculate offsets
        for(int i=0; i<block_num; i++)
        {
@@ -228,6 +250,34 @@ void hawkZip_decompress_kernel(float* decData, unsigned char* cmpData, int* absQ
        for(int i=0; i<thread_id; i++) global_ofs += threadOfs[i];
        unsigned int cmp_byte_ofs = global_ofs + block_num * NUM_THREADS;
 
+       // Pre-compute sign flags for all blocks
+       unsigned int temp_ofs = cmp_byte_ofs;
+       for(int i=0; i<block_num; i++)
+       {
+           int curr_block = start_block + i;
+           int temp_fixed_rate = fixedRate[curr_block];
+           
+           byte_offsets[i] = temp_ofs;
+           
+           if(temp_fixed_rate)
+           {
+               // Read sign flag (4 bytes)
+               sign_flags[i] = (0xff000000 & (cmpData[temp_ofs++] << 24)) |
+                              (0x00ff0000 & (cmpData[temp_ofs++] << 16)) |
+                              (0x0000ff00 & (cmpData[temp_ofs++] << 8))  |
+                              (0x000000ff & cmpData[temp_ofs++]);
+               
+               // Skip over the data bytes
+               temp_ofs += temp_fixed_rate * 4;
+           }
+           else
+           {
+               sign_flags[i] = 0;
+           }
+       }
+
+       unsigned char tempChars[4];
+
        // Process each block to reconstruct data
        for(int i=0; i<block_num; i++)
        {
@@ -236,62 +286,85 @@ void hawkZip_decompress_kernel(float* decData, unsigned char* cmpData, int* absQ
            block_end = (block_start+32) > end ? end : block_start+32;
            int curr_block = start_block + i;
            int temp_fixed_rate = fixedRate[curr_block];
-           unsigned int sign_flag = 0;
-           int sign_ofs;
+           
+           // Initialize absQuant values to 0 for this block
+           memset(&absQuant[block_start], 0, (block_end - block_start) * sizeof(int));
 
            // Skip empty blocks (all zeros)
            if(temp_fixed_rate)
            {
-               // Read sign flag (4 bytes)
-               sign_flag = (0xff000000 & (cmpData[cmp_byte_ofs++] << 24)) |
-                           (0x00ff0000 & (cmpData[cmp_byte_ofs++] << 16)) |
-                           (0x0000ff00 & (cmpData[cmp_byte_ofs++] << 8))  |
-                           (0x000000ff & cmpData[cmp_byte_ofs++]);
+               // set new offset
+               cmp_byte_ofs = byte_offsets[i] + 4;
 
-               // Read quantized data bits
-               unsigned char tmp_char0, tmp_char1, tmp_char2, tmp_char3; // Temp storage for each byte
-               
                // Process each bit position (fixed-rate encoding)
                for(int j=0; j<temp_fixed_rate; j++)
                {
-                   // Read packed bytes
-                   tmp_char0 = cmpData[cmp_byte_ofs++];
-                   tmp_char1 = cmpData[cmp_byte_ofs++];
-                   tmp_char2 = cmpData[cmp_byte_ofs++];
-                   tmp_char3 = cmpData[cmp_byte_ofs++];
+                   // read packed bytes
+                   memcpy(tempChars, &cmpData[cmp_byte_ofs], 4);
+                   // update offset
+                   cmp_byte_ofs += 4;
 
-                   // Unpack bits for elements 0-7 from first byte
-                   for(int k=block_start; k<block_start+8; k++)
-                       absQuant[k] |= ((tmp_char0 >> (7+block_start-k)) & 0x00000001) << j;
+                    // Unpack bits for elements 0-7 from first byte
+                    absQuant[block_start]   |= ((tempChars[0] >> 7) & 0x00000001) << j;
+                    absQuant[block_start+1] |= ((tempChars[0] >> 6) & 0x00000001) << j;
+                    absQuant[block_start+2] |= ((tempChars[0] >> 5) & 0x00000001) << j;
+                    absQuant[block_start+3] |= ((tempChars[0] >> 4) & 0x00000001) << j;
+                    absQuant[block_start+4] |= ((tempChars[0] >> 3) & 0x00000001) << j;
+                    absQuant[block_start+5] |= ((tempChars[0] >> 2) & 0x00000001) << j;
+                    absQuant[block_start+6] |= ((tempChars[0] >> 1) & 0x00000001) << j;
+                    absQuant[block_start+7] |= ((tempChars[0] >> 0) & 0x00000001) << j;
 
-                   // Unpack bits for elements 8-15 from second byte
-                   for(int k=block_start+8; k<block_start+16; k++)
-                       absQuant[k] |= ((tmp_char1 >> (15+block_start-k)) & 0x00000001) << j;
+                    // Unpack bits for elements 8-15 from second byte
+                    absQuant[block_start+8]  |= ((tempChars[1] >> 7) & 0x00000001) << j;
+                    absQuant[block_start+9]  |= ((tempChars[1] >> 6) & 0x00000001) << j;
+                    absQuant[block_start+10] |= ((tempChars[1] >> 5) & 0x00000001) << j;
+                    absQuant[block_start+11] |= ((tempChars[1] >> 4) & 0x00000001) << j;
+                    absQuant[block_start+12] |= ((tempChars[1] >> 3) & 0x00000001) << j;
+                    absQuant[block_start+13] |= ((tempChars[1] >> 2) & 0x00000001) << j;
+                    absQuant[block_start+14] |= ((tempChars[1] >> 1) & 0x00000001) << j;
+                    absQuant[block_start+15] |= ((tempChars[1] >> 0) & 0x00000001) << j;
 
-                   // Unpack bits for elements 16-23 from third byte
-                   for(int k=block_start+16; k<block_start+24; k++)
-                       absQuant[k] |= ((tmp_char2 >> (23+block_start-k)) & 0x00000001) << j;
+                    // Unpack bits for elements 16-23 from third byte
+                    absQuant[block_start+16] |= ((tempChars[2] >> 7) & 0x00000001) << j;
+                    absQuant[block_start+17] |= ((tempChars[2] >> 6) & 0x00000001) << j;
+                    absQuant[block_start+18] |= ((tempChars[2] >> 5) & 0x00000001) << j;
+                    absQuant[block_start+19] |= ((tempChars[2] >> 4) & 0x00000001) << j;
+                    absQuant[block_start+20] |= ((tempChars[2] >> 3) & 0x00000001) << j;
+                    absQuant[block_start+21] |= ((tempChars[2] >> 2) & 0x00000001) << j;
+                    absQuant[block_start+22] |= ((tempChars[2] >> 1) & 0x00000001) << j;
+                    absQuant[block_start+23] |= ((tempChars[2] >> 0) & 0x00000001) << j;
 
-                   // Unpack bits for elements 24-31 from fourth byte
-                   for(int k=block_start+24; k<block_end; k++)
-                       absQuant[k] |= ((tmp_char3 >> (31+block_start-k)) & 0x00000001) << j;
+                    // Unpack bits for elements 24-31 from fourth byte
+                    if (block_start+24 < block_end) absQuant[block_start+24] |= ((tempChars[3] >> 7) & 0x00000001) << j;
+                    if (block_start+25 < block_end) absQuant[block_start+25] |= ((tempChars[3] >> 6) & 0x00000001) << j;
+                    if (block_start+26 < block_end) absQuant[block_start+26] |= ((tempChars[3] >> 5) & 0x00000001) << j;
+                    if (block_start+27 < block_end) absQuant[block_start+27] |= ((tempChars[3] >> 4) & 0x00000001) << j;
+                    if (block_start+28 < block_end) absQuant[block_start+28] |= ((tempChars[3] >> 3) & 0x00000001) << j;
+                    if (block_start+29 < block_end) absQuant[block_start+29] |= ((tempChars[3] >> 2) & 0x00000001) << j;
+                    if (block_start+30 < block_end) absQuant[block_start+30] |= ((tempChars[3] >> 1) & 0x00000001) << j;
+                    if (block_start+31 < block_end) absQuant[block_start+31] |= ((tempChars[3] >> 0) & 0x00000001) << j;
                }
 
-               // Convert quantized values back to floating-point
-               int currQuant;
-               for(int i=block_start; i<block_end; i++)
+               // Convert quantized values back to floating-point (single pass)
+               for(int m = block_start; m < block_end; m++)
                {
                    // Apply sign based on sign flag
-                   sign_ofs = i % 32;
-                   if(sign_flag & (1 << (31 - sign_ofs)))
-                       currQuant = absQuant[i] * -1;  // Negative value
-                   else
-                       currQuant = absQuant[i];       // Positive value
+                   int sign_ofs = m % 32;
+                   int sign_bit = (sign_flags[i] >> (31 - sign_ofs)) & 0x01;
                    
-                   // Convert quantized value back to float using error bound
-                   decData[i] = currQuant * errorBound * 2;
+                   // Combine sign with value and convert to float in one step
+                   decData[m] = (sign_bit ? -absQuant[m] : absQuant[m]) * errorBound * 2;
                }
            }
+           else
+           {
+               // For empty blocks, set output to zeros
+               memset(&decData[block_start], 0, (block_end - block_start) * sizeof(float));
+           }
        }
+       
+       // Free allocated memory
+       free(sign_flags);
+       free(byte_offsets);
    }
 }
