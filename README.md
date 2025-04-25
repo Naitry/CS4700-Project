@@ -1,4 +1,4 @@
-
+=
 Make sure you have downloaded the data set:
 ```
 
@@ -21,4 +21,8 @@ python testAll.py --data-dir ./1800x3600 --count 77 --iterations 3 --error 1e-4 
 - 4. NUM_THREADS set to 152
     - tends to fail error check more often
 - 5. NUM_THREADS set to 32
-- 6. NUM_THREADS set to 152, 
+- 6. NUM_THREADS set to 152, packing and unpacking of bytes done in for loops unrolled
+- 7. NUM_Threads set to 32 + Unrolled loops 
+- 8. NUM_Threads set to 32 + Unrolled loops, Using memcpy and char arrays to move chars in and out of unpacking, rather than 4 seprate char variables
+    - apparent performance decrease
+
