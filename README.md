@@ -22,7 +22,7 @@ python testAll.py --data-dir ./1800x3600 --count 77 --iterations 3 --error 1e-4 
 - 57 MB L3
 - 256 GB of DDR4 3200MHz DDR4 on 8 channels
 
-# Summary or iterations
+# Summary of Code Iterations
 0. code we received at the start of the project
 1. code with added comments to get a better understanding of how it works, along with the change to 16 threads for NUM_THREADS;
 2. NUM_THREADS set to 38
