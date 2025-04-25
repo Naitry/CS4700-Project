@@ -1,4 +1,3 @@
-=
 Make sure you have downloaded the data set:
 ```
 wget https://g-8d6b0.fd635.8443.data.globus.org/ds131.2/Data-Reduction-Repo/raw-data/CESM-ATM/SDRBENCH-CESM-ATM-1800x3600.tar.gz
@@ -24,15 +23,15 @@ python testAll.py --data-dir ./1800x3600 --count 77 --iterations 3 --error 1e-4 
 - 256 GB of DDR4 3200MHz DDR4 on 8 channels
 
 # Summary or iterations
-- 0. code we received at the start of the project
-- 1. code with added comments to get a better understanding of how it works, along with the change to 16 threads for NUM_THREADS;
-- 2. NUM_THREADS set to 38
-- 3. NUM_THREADS set to 76
-- 4. NUM_THREADS set to 152
+0. code we received at the start of the project
+1. code with added comments to get a better understanding of how it works, along with the change to 16 threads for NUM_THREADS;
+2. NUM_THREADS set to 38
+3. NUM_THREADS set to 76
+4. NUM_THREADS set to 152
     - tends to fail error check more often
-- 5. NUM_THREADS set to 32
-- 6. NUM_THREADS set to 152, packing and unpacking of bytes done in for loops unrolled
-- 7. NUM_Threads set to 32 + Unrolled loops 
-- 8. NUM_Threads set to 32 + Unrolled loops, Using memcpy and char arrays to move chars in and out of unpacking, rather than 4 seprate char variables
+5. NUM_THREADS set to 32
+6. NUM_THREADS set to 152, packing and unpacking of bytes done in for loops unrolled
+7. NUM_Threads set to 32 + Unrolled loops 
+8. NUM_Threads set to 32 + Unrolled loops, Using memcpy and char arrays to move chars in and out of unpacking, rather than 4 seprate char variables
     - apparent performance decrease
 
