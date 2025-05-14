@@ -1,3 +1,6 @@
+# HPPC CS:4700 Project
+Project for CS:4700 High Performance Parallel Computing
+
 # HPPC HawkZip Compression Project
 Make sure you have downloaded the data set:
 ```
